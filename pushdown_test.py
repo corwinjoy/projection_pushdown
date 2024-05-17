@@ -4,7 +4,7 @@ import duckdb
 from time import perf_counter
 
 n = 100_000
-columns = 100
+columns = 10
 pd_df = pd.DataFrame({f'col{i}': 1000 * np.random.sample(n) for i in range(columns)})
 query = """
 SELECT col0
