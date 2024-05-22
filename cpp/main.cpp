@@ -33,6 +33,16 @@ void time_query(duckdb::Connection &con, const string &qry_str) {
          << duration.count() << " microseconds" << endl;
 }
 
+void explain_query(duckdb::Connection &con, const string &qry_str) {
+    con.Query("SET explain_output = 'all';");
+    auto result = con.Query(string("EXPLAIN ") + qry_str);
+    if (result->HasError()) {
+        cout << result->GetError();
+    } else {
+        cout << result->ToString() << endl;
+    }
+}
+
 int main(void) {
     DuckDB db(nullptr);
     Connection con(db);
@@ -68,9 +78,10 @@ int main(void) {
     // cout << rowstr.str() << endl;
     con.Query(rowstr.str());
 
-    cout << "Example Table:" << endl;
-    print_query(con, "SELECT * FROM push_d");
+    // cout << "Example Table:" << endl;
+    // print_query(con, "SELECT * FROM push_d");
 
+    /*
     string query_template =
             "SELECT col0\n"
             "FROM \n"
@@ -81,15 +92,37 @@ int main(void) {
             "    FROM push_d\n"
             "    ORDER by col0 DESC\n"
             ")";
+    */
+
+    string query_template =
+            "SELECT col0\n"
+            "FROM \n"
+            "(\n"
+            "    SELECT \n"
+            "    DISTINCT ON (floor(col0)) \n"
+            "    {columns}\n"
+            "    FROM push_d\n"
+            "    ORDER by col1 DESC\n)";
+            // ") ORDER by col1 DESC ";
 
     string param = "{columns}";
     string qry_col0 = string(query_template).replace(query_template.find(param),param.length(),"col0");
-    string qry_col_star = string(query_template).replace(query_template.find(param),param.length(),"*");
+    string qry_col_star = string(query_template).replace(query_template.find(param),param.length(),"col0, col1, col2");
 
-    cout << "Query:\n" << qry_col_star << endl;
+    // cout << "Query:\n" << qry_col_star << endl;
 
-    cout << "Time col0:" << endl;
-    time_query(con, qry_col0);
+    print_query(con, qry_col_star);
+
+
+    //cout << "Explain col0:" << endl;
+    //explain_query(con, qry_col0);
+    //cout << "\n";
+    cout << "Explain *:" << endl;
+    explain_query(con, qry_col_star);
+
+
+    //cout << "Time col0:" << endl;
+    //time_query(con, qry_col0);
     cout << "\n";
     cout << "Time using *:" << endl;
     time_query(con, qry_col_star);
