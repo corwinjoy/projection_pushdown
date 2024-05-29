@@ -43,7 +43,7 @@ void explain_query(duckdb::Connection &con, const string &qry_str) {
     }
 }
 
-int main(void) {
+int main_old(void) {
     DuckDB db(nullptr);
     Connection con(db);
 
@@ -129,5 +129,41 @@ int main(void) {
     return 0;
 }
 
+/*
+ *
+ * statement ok
+CREATE TABLE t0(c1 INT);
+
+statement ok
+INSERT INTO t0(c1) VALUES (1);
+
+statement ok
+CREATE VIEW v0(c0, c1, c2) AS SELECT '1', true, t0.c1 FROM t0 ORDER BY -1-2 LIMIT 2;
+
+statement ok
+SELECT v0.c2 FROM v0 WHERE (NOT (v0.c1 IS NOT NULL));
+ */
+
+int main(void) {
+    DuckDB db(nullptr);
+    Connection con(db);
+
+    string qry1 = "CREATE TABLE t0(c1 INT);";
+    con.Query(qry1);
+
+    string qry2 = "INSERT INTO t0(c1) VALUES (1);";
+    con.Query(qry2);
+
+    string qry3 = "CREATE VIEW v0(c0, c1, c2) AS SELECT '1', true, t0.c1 FROM t0 ORDER BY -1-2 LIMIT 2;";
+    con.Query(qry3);
+
+    //string qry4 = "UPDATE t0 SET c1 = c0;";
+    //con.Query(qry4);
+
+    string qry5 = "SELECT v0.c2 FROM v0 WHERE (NOT (v0.c1 IS NOT NULL));";
+    explain_query(con, qry5);
+    print_query(con, qry5);
+
+}
 
 
